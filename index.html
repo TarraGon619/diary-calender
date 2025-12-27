@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="manifest" href="./manifest.json?v=2">
+<link rel="manifest" href="./manifest.json?v=3">
 <meta name="theme-color" content="#0077ff">
 
-<title>다이어리 캘린더</title>
+<title>근무 내용 캘린더</title>
 
 <style>
 body {
@@ -50,7 +50,7 @@ h1 {
   background: white;
   border-radius: 6px;
   padding: 6px;
-  min-height: 80px;
+  min-height: 90px;
   cursor: pointer;
   font-size: 14px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
@@ -78,11 +78,12 @@ h1 {
 
 /* 제목 미리보기 */
 .preview {
-  font-size: 12px;
+  font-size: 11px;
   color: #0077ff;
-  white-space: nowrap;
+  line-height: 1.2;
+  max-height: 3.6em; /* 최대 3줄 */
   overflow: hidden;
-  text-overflow: ellipsis;
+  word-break: break-all;
 }
 
 /* 모달 */
@@ -111,7 +112,7 @@ h1 {
 
 .modal-content textarea {
   resize: vertical;
-  min-height: 80px;
+  min-height: 90px;
 }
 
 .modal-content button {
@@ -129,7 +130,7 @@ h1 {
 
 <body>
 
-<h1>다이어리 캘린더</h1>
+<h1>근무 내용 캘린더</h1>
 
 <div class="header">
   <button id="prev">◀</button>
@@ -155,13 +156,13 @@ h1 {
     <h3 id="modalDate"></h3>
 
     제목
-    <input type="text" id="titleInput" placeholder="한 줄 제목">
+    <textarea type="text" id="titleInput" placeholder="한 줄 제목"></textarea>
 
     내용
     <textarea id="contentInput" placeholder="근무 내용을 입력하세요"></textarea>
 
     <button id="save">저장</button>
-    <button id="delete" class="delete-btn">내용 삭제</button>
+    <button id="delete" class="delete-btn">하루 기록 삭제</button>
     <button onclick="closeModal()">닫기</button>
   </div>
 </div>
@@ -184,6 +185,27 @@ const prevBtn = document.getElementById("prev");
 const nextBtn = document.getElementById("next");
 const saveBtn = document.getElementById("save");
 const deleteBtn = document.getElementById("delete");
+
+/* 🔹 제목 포맷 함수
+   - 3글자씩 줄바꿈
+   - 최대 3줄 초과 시 마지막 줄에 ...
+*/
+function formatTitle(title) {
+  const charsPerLine = 3;
+  const maxLines = 3;
+
+  let lines = [];
+  for (let i = 0; i < title.length; i += charsPerLine) {
+    lines.push(title.slice(i, i + charsPerLine));
+  }
+
+  if (lines.length > maxLines) {
+    lines = lines.slice(0, maxLines);
+    lines[maxLines - 1] += "<br>...";
+  }
+
+  return lines.join("<br>");
+}
 
 function saveData() {
   localStorage.setItem(
@@ -228,7 +250,7 @@ function renderCalendar() {
 
     if (workData[dateStr]) {
       div.innerHTML +=
-        `<div class="preview">${workData[dateStr].title}</div>`;
+        `<div class="preview">${formatTitle(workData[dateStr].title)}</div>`;
     }
 
     div.onclick = () => openModal(dateStr);

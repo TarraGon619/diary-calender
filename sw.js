@@ -1,8 +1,8 @@
-const CACHE_NAME = "diary-calendar-v2";
+const CACHE_NAME = "diary-calendar-v3";
 const FILES_TO_CACHE = [
   "./",
   "./index.html",
-  "./manifest.json",
+  "./manifest.json?v=3",
   "./icon.png"
 ];
 
