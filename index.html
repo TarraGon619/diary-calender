@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="manifest" href="./manifest.json">
+<link rel="manifest" href="./manifest.json?v=2">
 <meta name="theme-color" content="#0077ff">
 
-<title>근무 내용 캘린더</title>
+<title>다이어리 캘린더</title>
 
 <style>
 body {
@@ -72,7 +72,7 @@ h1 {
   width: 26px;
   height: 26px;
   border-radius: 50%;
-  border: 2px solid #0077ff;
+  border: 2px solid #ff0000;
   box-sizing: border-box;
 }
 
@@ -129,7 +129,7 @@ h1 {
 
 <body>
 
-<h1>근무 내용 캘린더</h1>
+<h1>다이어리 캘린더</h1>
 
 <div class="header">
   <button id="prev">◀</button>
@@ -161,7 +161,7 @@ h1 {
     <textarea id="contentInput" placeholder="근무 내용을 입력하세요"></textarea>
 
     <button id="save">저장</button>
-    <button id="delete" class="delete-btn">하루 기록 삭제</button>
+    <button id="delete" class="delete-btn">내용 삭제</button>
     <button onclick="closeModal()">닫기</button>
   </div>
 </div>
