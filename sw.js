@@ -2,7 +2,7 @@ const CACHE_NAME = "diary-calendar-v3";
 const FILES_TO_CACHE = [
   "./",
   "./index.html",
-  "./manifest.json?v=3",
+  "./manifest.json?v=4",
   "./icon.png"
 ];
 
