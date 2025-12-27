@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#0077ff">
+
+<title>근무 내용 캘린더</title>
+
+<style>
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 10px;
+  background: #f5f6f8;
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 10px;
+}
+
+.weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.sun { color: red; }
+.sat { color: blue; }
+
+#calendar {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+}
+
+.day {
+  background: white;
+  border-radius: 6px;
+  padding: 6px;
+  min-height: 80px;
+  cursor: pointer;
+  font-size: 14px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.day strong {
+  display: inline-block;
+  margin-bottom: 4px;
+}
+
+.sun-day strong { color: red; }
+.sat-day strong { color: blue; }
+
+/* 오늘 날짜 숫자만 동그라미 */
+.today strong {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid #0077ff;
+  box-sizing: border-box;
+}
+
+/* 제목 미리보기 */
+.preview {
+  font-size: 12px;
+  color: #0077ff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 모달 */
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+}
+
+.modal-content {
+  background: white;
+  padding: 20px;
+  width: 90%;
+  max-width: 320px;
+  margin: 120px auto;
+  border-radius: 10px;
+}
+
+.modal-content input,
+.modal-content textarea {
+  width: 100%;
+  margin: 6px 0 12px;
+  font-size: 14px;
+}
+
+.modal-content textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.modal-content button {
+  width: 100%;
+  margin-top: 6px;
+}
+
+.delete-btn {
+  background: #ff4d4d;
+  color: white;
+  border: none;
+}
+</style>
+</head>
+
+<body>
+
+<h1>근무 내용 캘린더</h1>
+
+<div class="header">
+  <button id="prev">◀</button>
+  <h2 id="month"></h2>
+  <button id="next">▶</button>
+</div>
+
+<div class="weekdays">
+  <div class="sun">일</div>
+  <div>월</div>
+  <div>화</div>
+  <div>수</div>
+  <div>목</div>
+  <div>금</div>
+  <div class="sat">토</div>
+</div>
+
+<div id="calendar"></div>
+
+<!-- 모달 -->
+<div id="modal" class="modal">
+  <div class="modal-content">
+    <h3 id="modalDate"></h3>
+
+    제목
+    <input type="text" id="titleInput" placeholder="한 줄 제목">
+
+    내용
+    <textarea id="contentInput" placeholder="근무 내용을 입력하세요"></textarea>
+
+    <button id="save">저장</button>
+    <button id="delete" class="delete-btn">하루 기록 삭제</button>
+    <button onclick="closeModal()">닫기</button>
+  </div>
+</div>
+
+<script>
+let current = new Date();
+let selectedDate = "";
+
+const workData =
+  JSON.parse(localStorage.getItem("workContentData")) || {};
+
+const calendar = document.getElementById("calendar");
+const month = document.getElementById("month");
+const modal = document.getElementById("modal");
+const modalDate = document.getElementById("modalDate");
+const titleInput = document.getElementById("titleInput");
+const contentInput = document.getElementById("contentInput");
+
+const prevBtn = document.getElementById("prev");
+const nextBtn = document.getElementById("next");
+const saveBtn = document.getElementById("save");
+const deleteBtn = document.getElementById("delete");
+
+function saveData() {
+  localStorage.setItem(
+    "workContentData",
+    JSON.stringify(workData)
+  );
+}
+
+function renderCalendar() {
+  calendar.innerHTML = "";
+
+  const y = current.getFullYear();
+  const m = current.getMonth();
+  month.textContent = `${y}년 ${m + 1}월`;
+
+  const today = new Date();
+  const ty = today.getFullYear();
+  const tm = today.getMonth();
+  const td = today.getDate();
+
+  const firstDay = new Date(y, m, 1).getDay();
+  const lastDate = new Date(y, m + 1, 0).getDate();
+
+  for (let i = 0; i < firstDay; i++) {
+    calendar.appendChild(document.createElement("div"));
+  }
+
+  for (let d = 1; d <= lastDate; d++) {
+    const date = new Date(y, m, d);
+    const dow = date.getDay();
+    const dateStr =
+      `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+
+    const div = document.createElement("div");
+    div.className = "day";
+
+    if (dow === 0) div.classList.add("sun-day");
+    if (dow === 6) div.classList.add("sat-day");
+    if (y === ty && m === tm && d === td) div.classList.add("today");
+
+    div.innerHTML = `<strong>${d}</strong>`;
+
+    if (workData[dateStr]) {
+      div.innerHTML +=
+        `<div class="preview">${workData[dateStr].title}</div>`;
+    }
+
+    div.onclick = () => openModal(dateStr);
+    calendar.appendChild(div);
+  }
+}
+
+function openModal(date) {
+  selectedDate = date;
+  modalDate.textContent = date;
+  titleInput.value = workData[date]?.title || "";
+  contentInput.value = workData[date]?.content || "";
+  modal.style.display = "block";
+}
+
+function closeModal() {
+  modal.style.display = "none";
+}
+
+saveBtn.onclick = () => {
+  if (titleInput.value.trim()) {
+    workData[selectedDate] = {
+      title: titleInput.value.trim(),
+      content: contentInput.value.trim()
+    };
+    saveData();
+    closeModal();
+    renderCalendar();
+  }
+};
+
+deleteBtn.onclick = () => {
+  if (workData[selectedDate]) {
+    delete workData[selectedDate];
+    saveData();
+    closeModal();
+    renderCalendar();
+  }
+};
+
+prevBtn.onclick = () => {
+  current.setMonth(current.getMonth() - 1);
+  renderCalendar();
+};
+
+nextBtn.onclick = () => {
+  current.setMonth(current.getMonth() + 1);
+  renderCalendar();
+};
+
+renderCalendar();
+</script>
+
+<script>
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("./sw.js");
+}
+</script>
+
+</body>
+</html>
